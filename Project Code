@@ -1,0 +1,96 @@
+/*This is the code for the simulation of hardware as well as sofware of the circuit designed*/
+
+#include <Wire.h>
+#include <LiquidCrystal.h>
+#include "RTClib.h"
+RTC_DS1307 rtc;
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2); // (rs, e, d4, d5, d6, d7)
+int RELAY = 13;
+char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+int j=0;
+int prev=0;
+int pres=0;
+const int OnHour =00 ; //SET TIME TO ON RELAY (24 HOUR FORMAT)
+const int OnMin =4;
+//const int OffHour = 18; //SET TIME TO OFF RELAY
+//const int OffMin = 29;
+void setup () 
+{
+ pinMode(RELAY, OUTPUT);
+ Serial.begin(9600);
+ lcd.begin(16, 2);
+ 
+ if (! rtc.begin()) 
+ {
+ lcd.print("Couldn't find RTC");
+ while (1);
+ }
+ if (! rtc.isrunning()) 
+ {
+ lcd.print("RTC is NOT running!");
+ }
+ 
+ rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));//auto update from computer time
+ // rtc.adjust(DateTime(2022, 4, 11, 18,26 , 50));// to set the time manualy 
+ 
+}
+void loop () 
+{
+ // put your main code here, to run repeatedly:
+// sensorval=analogRead(sensorpin);
+ //Serial.println(sensorval);
+ j=analogRead(A0);
+ j=map(j,0,982,148,0);
+ pres=j;
+ if(j>100)
+ j=100;
+ else if(j>100)
+ j=100;
+ else if(j<0)
+ j=0;
+ //lcd.setCursor(,);
+ //lcd.print(j);
+ //lcd.print("%");
+ prev=j;
+ // delay(5000);
+ 
+ DateTime now = rtc.now();
+ 
+ lcd.setCursor(0, 1);
+ lcd.print(now.hour());
+ lcd.print(':');
+ lcd.print(now.minute());
+ lcd.print(':');
+ lcd.print(now.second());
+ lcd.print(" ");
+ lcd.setCursor(0, 0);
+ lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+ lcd.print(",");
+ lcd.print("Moisture:");
+ //lcd.setCursor(",");
+ lcd.print(j);
+ lcd.print("%");
+ //lcd.print(now.day());
+ /*lcd.print('/');
+ lcd.print(now.month());
+ lcd.print('/');
+ lcd.print(now.year());*/
+ 
+ if(now.hour() == OnHour && now.minute() == OnMin && j==0){ 
+ digitalWrite(RELAY,HIGH);
+ delay(30000);
+ digitalWrite(RELAY,LOW);
+ delay(20000);
+ }
+ 
+ /*else if(now.hour() == OffHour && now.minute() == OffMin && j==50){
+ digitalWrite(RELAY,HIGH);
+ //delay(120000);
+ }*/
+ else if(now.hour() == OnHour && now.minute() == OnMin && j==100)
+ {
+ digitalWrite(RELAY,LOW);
+ delay(30000);
+ 
+ }
+ 
